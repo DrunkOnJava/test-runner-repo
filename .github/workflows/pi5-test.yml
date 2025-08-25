@@ -1,0 +1,48 @@
+name: Test Pi5 Runner
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-pi5:
+    runs-on: [self-hosted, linux, arm64, pi]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: System Information
+      run: |
+        echo "🍓 Running on Raspberry Pi 5!"
+        echo "Hostname: $(hostname)"
+        echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
+        echo "Kernel: $(uname -r)"
+        echo "Architecture: $(uname -m)"
+        echo "CPU: $(lscpu | grep "Model name" | cut -d':' -f2 | xargs)"
+        echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
+        echo "Disk Usage: $(df -h / | tail -1 | awk '{print $3 "/" $2}')"
+    
+    - name: Docker Version
+      run: docker --version
+    
+    - name: Node.js Test
+      run: |
+        node --version || echo "Node.js not in PATH"
+        npm --version || echo "npm not in PATH"
+    
+    - name: Python Version
+      run: python3 --version
+    
+    - name: Network Test
+      run: |
+        echo "Network interfaces:"
+        ip -4 addr show | grep inet | grep -v 127.0.0.1
+    
+    - name: Create Test File
+      run: |
+        echo "Test run at $(date)" >> pi5-test.log
+        echo "Runner successful! 🎉" >> pi5-test.log
+        cat pi5-test.log
